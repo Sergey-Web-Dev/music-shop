@@ -1,0 +1,81 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Statuses {
+  InCart
+  InProcess
+  Paid
+  InDelivery
+  Fulfilled
+  Declined
+}
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  email          String  @unique
+  hashedPassword String?
+
+  firstName String?
+  lastName  String?
+
+  refreshToken String?
+
+  orders Order[]
+
+  @@map("users")
+}
+
+model Product {
+  id                String  @id @default(uuid()) @db.Uuid
+  name              String
+  image             String
+  price             Float
+  quantityAvailable Int
+  description       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orderItems OrderItem[]
+
+  @@map("products")
+}
+
+model OrderItem {
+  id          String @id @default(uuid()) @db.Uuid
+  quantity    Int
+  bundlePrice Float
+
+  productId String @default(uuid()) @db.Uuid
+  orderId   String @default(uuid()) @db.Uuid
+
+  product Product @relation(fields: [productId], references: [id])
+  order   Order   @relation(fields: [orderId], references: [id])
+
+  @@map("order_items")
+}
+
+model Order {
+  id     String   @id @default(uuid()) @db.Uuid
+  total  Float
+  status Statuses
+
+  userId String @default(uuid()) @db.Uuid
+
+  user       User        @relation(fields: [userId], references: [id])
+  orderItems OrderItem[]
+
+  @@map("orders")
+}
