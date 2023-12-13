@@ -22,4 +22,9 @@ export class AuthController {
   async signOut(@Headers('Authorization') bearer: string) {
     return this.authService.signOut(bearer);
   }
+
+  @Post('/refresh')
+  async refresh(@Headers('Authorization') bearer: string) {
+    return this.authService.refresh(bearer);
+  }
 }

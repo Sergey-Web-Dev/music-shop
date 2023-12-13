@@ -4,7 +4,7 @@ import { UsersRepo } from 'domain/repos/users.repo';
 import { SignUpForm } from './domain/sign-up.form';
 import { SignInForm } from './domain/sign-in.form';
 import { SecurityService } from 'libs/security/security.service';
-import { JwtPayload } from 'libs/security/types/jwt.types';
+import { JwtPayload, UserFromToken } from 'libs/security/types/jwt.types';
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
@@ -13,16 +13,16 @@ export class AuthService {
     private usersRepo: UsersRepo,
     private securityService: SecurityService,
     private jwtService: JwtService,
-    ) {}
+  ) {}
 
   async signIn(signInForm: SignInForm) {
     const { email, password } = signInForm;
     const user = await this.usersRepo.getUserByEmail(email);
-    if(!user) {
+    if (!user) {
       throw new HttpException('There is no such user', HttpStatus.BAD_REQUEST);
     }
-    const passwordMatch = await argon2.verify(user.hashedPassword, password)
-    if(!passwordMatch) {
+    const passwordMatch = await argon2.verify(user.hashedPassword, password);
+    if (!passwordMatch) {
       throw new HttpException('Wrong password', HttpStatus.BAD_REQUEST);
     }
     const payload: JwtPayload = { sub: user.id, email: user.email };
@@ -32,24 +32,36 @@ export class AuthService {
   async signUp(signUpForm: SignUpForm) {
     const { email, password, confirmPassword } = signUpForm;
     const entity = await this.usersRepo.getUserByEmail(email);
-    if(entity) {
+    if (entity) {
       throw new HttpException('User with this email already exists', HttpStatus.BAD_REQUEST);
     }
-    if(password !== confirmPassword) {
+    if (password !== confirmPassword) {
       throw new HttpException('Passwords do not match', HttpStatus.BAD_REQUEST);
     }
-    const hashedPassword = await argon2.hash(password)
+    const hashedPassword = await argon2.hash(password);
     const createdUser = await this.usersRepo.createUser(email, hashedPassword);
-    const payload = {sub: createdUser.id, email: createdUser.email};
-    return this.assignTokens(payload)
+    const payload = { sub: createdUser.id, email: createdUser.email };
+    return this.assignTokens(payload);
   }
 
   async signOut(bearer: string) {
-    const access_token = bearer.replace('Bearer ', '')
+    const access_token = bearer.replace('Bearer ', '');
     const userFromToken = await this.jwtService.verifyAsync(access_token, {
-      secret: process.env.JWT_SECRET
-    })
+      secret: process.env.JWT_SECRET,
+    });
     return await this.usersRepo.signOutUser(userFromToken);
+  }
+
+  async refresh(bearer: string) {
+    const refresh_token = bearer.replace('Bearer ', '');
+    const userFromToken: UserFromToken = await this.jwtService.verifyAsync(refresh_token, {
+        secret: process.env.JWT_SECRET,
+    });
+    const payload: JwtPayload = {
+      sub: userFromToken.sub,
+      email: userFromToken.email,
+    };
+    return await this.assignTokens(payload);
   }
 
   async assignTokens(payload: JwtPayload) {
