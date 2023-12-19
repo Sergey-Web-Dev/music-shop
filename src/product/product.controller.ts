@@ -1,5 +1,6 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, HttpException, HttpStatus, Param } from '@nestjs/common';
 import { ProductService } from './product.service';
+import { ProductDto } from 'domain/dto/product.dto';
 
 @Controller('products')
 export class ProductController {
@@ -7,11 +8,16 @@ export class ProductController {
 
   @Get()
   async getProducts() {
-    return await this.productService.getProducts();
+    const products = await this.productService.getProducts();
+    return ProductDto.fromEntities(products);
   }
 
   @Get(':id')
   async getProductById(@Param('id') id: string) {
-    return await this.productService.getProductById(id);
+    const product = await this.productService.getProductById(id);
+    if(!product) {
+      throw new HttpException('There is no such product', HttpStatus.BAD_REQUEST);
+    }
+    return ProductDto.fromEntity(product);
   }
 }

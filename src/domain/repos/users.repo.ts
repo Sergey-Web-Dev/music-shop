@@ -27,6 +27,9 @@ export class UsersRepo {
     return await this.prismaService.user.findUnique({
       where: {
         id
+      },
+      include: {
+        orders: true
       }
     })
   }
