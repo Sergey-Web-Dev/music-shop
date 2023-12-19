@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Product } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
 
 @Injectable()
@@ -23,5 +24,39 @@ export class ProductsRepo {
         id,
       },
     });
+  }
+
+  async getProductQuantity(id: string) {
+    const searchedProduct = await this.prismaService.product.findUnique({
+      where: {
+        id
+      }
+    })
+    return searchedProduct.quantityAvailable
+  }
+
+  async setProductQuantity(id: string, quantity: number) {
+    const searchedProduct = await this.prismaService.product.update({
+      where: {
+        id
+      },
+      data: {
+        quantityAvailable: quantity
+      }
+    })
+    return searchedProduct.quantityAvailable
+  }
+
+  async updateProductAmount(id: string, quantity: number) {
+    return await this.prismaService.product.update({
+      where: {
+        id,
+      },
+      data: {
+        quantityAvailable: {
+          decrement: quantity
+        }
+      }
+    })
   }
 }
