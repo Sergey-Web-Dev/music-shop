@@ -10,6 +10,10 @@ export class ProductService {
   }
 
   async getProductById(id: string) {
-    return await this.productsRepo.getProductById(id);
+    try {
+      return await this.productsRepo.getProductById(id);
+    } catch (e) {
+      console.log(e)
+    }
   }
 }
