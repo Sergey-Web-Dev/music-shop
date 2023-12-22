@@ -1,16 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { Product } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
+import { QueryType } from 'product/types/product.types';
 
 @Injectable()
 export class ProductsRepo {
   constructor(private prismaService: PrismaService) {}
 
-  async getProducts() {
+  async getProducts(query: QueryType) {
+    const { page, perPage } = query;
+    const skip = page ? (page-1) * perPage : 0;
+    const take = +perPage;
     return await this.prismaService.product.findMany({
       where: {
         quantityAvailable: { gt: 0 },
       },
+      skip,
+      take
     });
   }
 
