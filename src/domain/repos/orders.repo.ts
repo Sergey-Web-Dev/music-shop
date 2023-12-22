@@ -33,7 +33,11 @@ export class OrdersRepo {
         status: 'InCart',
       },
       include: {
-        orderItems: true
+        orderItems: {
+          include: {
+            product: true
+          }
+        }
       }
     });
   }
@@ -111,7 +115,11 @@ export class OrdersRepo {
         status: 'Fulfilled',
       },
       include: {
-        orderItems: true
+        orderItems: {
+          include: {
+            product: true
+          }
+        }
       }
     });
   }

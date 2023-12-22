@@ -4,7 +4,7 @@ import { JwtGuard } from 'libs/security/guards/jwt.guard';
 import { OrderItem } from '@prisma/client';
 import { OrderItemDto } from 'domain/dto/order-item.dto';
 
-@Controller('order-item')
+@Controller('order-items')
 export class OrderItemController {
   constructor(private readonly orderItemService: OrderItemService) {}
 

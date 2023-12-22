@@ -3,7 +3,6 @@ import { OrdersRepo } from 'domain/repos/orders.repo';
 import { OrderItem, User } from '@prisma/client';
 import { OrderItemsRepo } from 'domain/repos/order-items.repo';
 import { ProductsRepo } from 'domain/repos/products.repo';
-import { OrderDto } from 'domain/dto/order.dto';
 
 @Injectable()
 export class OrderService {
@@ -12,6 +11,10 @@ export class OrderService {
     private orderItemsRepo: OrderItemsRepo,
     private productsRepo: ProductsRepo,
   ) {}
+
+  async getCart(user: Pick<User, 'id'>) {
+    return this.ordersRepo.findCart(user);
+  }
 
   async addToOrder(
     user: Pick<User, 'id'>,
@@ -37,7 +40,10 @@ export class OrderService {
     return await this.ordersRepo.updatedOrderTotal(order.id);
   }
 
-  async removeFromOrder(user: Pick<User, 'id'>, orderItem: Pick<OrderItem, 'id'>) {
+  async removeFromOrder(
+    user: Pick<User, 'id'>,
+    orderItem: Pick<OrderItem, 'id'>,
+  ) {
     const cart = await this.ordersRepo.findCart(user);
     if (!cart) {
       return;
@@ -64,17 +70,23 @@ export class OrderService {
       return;
     }
     const orderItems: OrderItem[] = cart['orderItems'];
-    await Promise.all(orderItems.map(async (item) => {
-      let availableQuantity = await this.productsRepo.getProductQuantity(item.productId);
-      if (item.quantity > availableQuantity) {
-        item.available = availableQuantity;
-      }
-      return item;
-    }));
-    if(orderItems.every((item) => item.available === null && item.quantity > 0)) {
+    await Promise.all(
+      orderItems.map(async (item) => {
+        let availableQuantity = await this.productsRepo.getProductQuantity(
+          item.productId,
+        );
+        if (item.quantity > availableQuantity) {
+          item.available = availableQuantity;
+        }
+        return item;
+      }),
+    );
+    if (
+      orderItems.every((item) => item.available === null && item.quantity > 0)
+    ) {
       orderItems.forEach((item) => [
-        this.productsRepo.updateProductAmount(item.productId, item.quantity)
-      ])
+        this.productsRepo.updateProductAmount(item.productId, item.quantity),
+      ]);
       return await this.ordersRepo.submitOrder(cart);
     }
     cart['orderItems'] = orderItems;

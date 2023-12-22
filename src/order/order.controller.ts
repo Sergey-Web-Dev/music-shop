@@ -1,13 +1,20 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Headers, HttpException, HttpStatus, Post, UseGuards } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CurrentUser } from 'libs/decorators/current-user.decorator';
 import { OrderItem, User } from '@prisma/client';
 import { JwtGuard } from 'libs/security/guards/jwt.guard';
 import { OrderDto } from 'domain/dto/order.dto';
 
-@Controller('order')
+@Controller('orders')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
+
+  @Get('cart')
+  @UseGuards(JwtGuard)
+  async getCart(@CurrentUser('id') userId: string) {
+    const user = { id: userId };
+    return await this.orderService.getCart(user)
+  }
 
   @Post('add-to-order')
   @UseGuards(JwtGuard)
@@ -31,7 +38,7 @@ export class OrderController {
     if(!order) {
       throw new HttpException('You do not have a cart', HttpStatus.BAD_REQUEST)
     }
-    return await OrderDto.fromEntity(order);
+    return OrderDto.fromEntity(order);
   }
 
   @Get('history')
