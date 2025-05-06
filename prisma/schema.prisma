@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -19,18 +16,25 @@ enum Statuses {
   Declined
 }
 
-model User {
-  id        String   @id @default(uuid()) @db.Uuid
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+enum UserRole {
+  ADMIN
+  CUSTOMER
+}
 
-  email          String  @unique
-  hashedPassword String?
+model User {
+  id String @id @default(uuid()) @db.Uuid
+
+  email          String @unique
+  hashedPassword String
+  salt           String
 
   firstName String?
   lastName  String?
 
-  refreshToken String?
+  role UserRole @default(CUSTOMER)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   orders Order[]
 
@@ -44,39 +48,79 @@ model Product {
   price             Float
   quantityAvailable Int
   description       String?
+  categoryId        String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  category   Category    @relation(fields: [categoryId], references: [id])
   orderItems OrderItem[]
 
   @@map("products")
 }
 
-model OrderItem {
-  id          String @id @default(uuid()) @db.Uuid
-  quantity    Int
-  bundlePrice Float
-  available Int?
+model Category {
+  id       String  @id @default(uuid()) @db.Uuid
+  name     String
+  parentId String?
 
-  productId String @default(uuid()) @db.Uuid
-  orderId   String? @default(uuid()) @db.Uuid
+  products      Product[]
+  subcategories Subcategory[]
 
-  product Product @relation(fields: [productId], references: [id])
-  order   Order?   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  @@map("categories")
+}
 
-  @@map("order_items")
+model Subcategory {
+  id               String           @id @default(uuid()) @db.Uuid
+  name             String
+  categoryId       String
+  category         Category         @relation(fields: [categoryId], references: [id])
+  subsubcategories Subsubcategory[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("subCategories")
+}
+
+model Subsubcategory {
+  id            String      @id @default(uuid()) @db.Uuid
+  name          String
+  subcategoryId String
+  subcategory   Subcategory @relation(fields: [subcategoryId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("sub_subCategories")
 }
 
 model Order {
   id     String   @id @default(uuid()) @db.Uuid
+  userId String   @default(uuid()) @db.Uuid
   total  Float?
-  status Statuses
+  status Statuses @default(InCart)
 
-  userId String @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   user       User        @relation(fields: [userId], references: [id])
   orderItems OrderItem[]
 
   @@map("orders")
+}
+
+model OrderItem {
+  id        String @id @default(uuid()) @db.Uuid
+  productId String
+  orderId   String
+
+  quantity  Int
+  price     Float
+  available Int?
+
+  product Product @relation(fields: [productId], references: [id])
+  order   Order?  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("order_items")
 }
