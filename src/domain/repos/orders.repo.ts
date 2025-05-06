@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { Order, OrderItem, Prisma, User } from '@prisma/client';
-import { PrismaService } from 'prisma/prisma.service';
+import { Order, OrderItem, User } from '@prisma/client';
+import {DbService} from '../../db/db.service';
 
 @Injectable()
 export class OrdersRepo {
-  constructor(private prismaService: PrismaService) {}
+  constructor(private prismaService: DbService) {}
 
   async createCart(user: Pick<User, 'id'>) {
     return await this.prismaService.order.create({

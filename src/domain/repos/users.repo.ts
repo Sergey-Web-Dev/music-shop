@@ -1,13 +1,13 @@
 import { Injectable } from "@nestjs/common";
 import { UserFromToken } from "libs/security/types/jwt.types";
-import { PrismaService } from "prisma/prisma.service";
+import {DbService} from '../../db/db.service';
 
 @Injectable()
 export class UsersRepo {
-  constructor(private prismaService: PrismaService){}
+  constructor(private prismaService: DbService){}
 
   async createUser(email: string, hashedPassword: string) {
-    return await this.prismaService.user.create({
+    return  this.prismaService.user.create({
       data: {
         email,
         hashedPassword
@@ -16,7 +16,7 @@ export class UsersRepo {
   }
 
   async getUserByEmail(email: string) {
-    return await this.prismaService.user.findUnique({
+    return  this.prismaService.user.findUnique({
       where: {
         email
       }
@@ -24,7 +24,7 @@ export class UsersRepo {
   }
 
   async getUserById(id: string) {
-    return await this.prismaService.user.findUnique({
+    return  this.prismaService.user.findUnique({
       where: {
         id
       },
@@ -35,7 +35,7 @@ export class UsersRepo {
   }
 
   async setRefreshToken(id: string, refreshToken: string) {
-    return await this.prismaService.user.update({
+    return  this.prismaService.user.update({
       where: {
         id
       },
@@ -46,7 +46,7 @@ export class UsersRepo {
   }
 
   async signOutUser(user: UserFromToken) {
-    return await this.prismaService.user.update({
+    return  this.prismaService.user.update({
       where: {
         id: user.sub
       },

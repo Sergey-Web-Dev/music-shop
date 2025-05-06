@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { Product } from '@prisma/client';
-import { PrismaService } from 'prisma/prisma.service';
 import { QueryType } from 'product/types/product.types';
+import {DbService} from '../../db/db.service';
 
 @Injectable()
 export class ProductsRepo {
-  constructor(private prismaService: PrismaService) {}
+  constructor(private prismaService: DbService) {}
 
   async getProducts(query: QueryType) {
     const { page, perPage } = query;

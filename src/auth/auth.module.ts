@@ -4,10 +4,11 @@ import { AuthService } from './auth.service';
 import { UsersRepo } from 'domain/repos/users.repo';
 import { SecurityService } from 'libs/security/security.service';
 import { SecurityModule } from 'libs/security/security.module';
+import {DbModule} from '../db/db.module';
 
 
 @Module({
-  imports: [SecurityModule],
+  imports: [SecurityModule, DbModule],
   controllers: [AuthController],
   providers: [AuthService, UsersRepo, SecurityService],
 })

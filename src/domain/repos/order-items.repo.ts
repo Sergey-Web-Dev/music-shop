@@ -1,11 +1,12 @@
 import { Injectable } from "@nestjs/common";
-import { Order, OrderItem, Product, User } from "@prisma/client";
+import { OrderItem, } from "@prisma/client";
 import { Pick } from "@prisma/client/runtime/library";
-import { PrismaService } from "prisma/prisma.service";
+import { DbService } from '../../db/db.service';
+
 
 @Injectable()
 export class OrderItemsRepo {
-  constructor(private prismaService: PrismaService) {}
+  constructor(private prismaService: DbService) {}
 
   async createOrderItem(orderItem: Pick<OrderItem, 'productId' | 'quantity'>) {
     const product = await this.prismaService.product.findUnique({
@@ -14,7 +15,7 @@ export class OrderItemsRepo {
       }
     })
     const bundlePrice = product.price*orderItem.quantity;
-    return await this.prismaService.orderItem.create({
+    return this.prismaService.orderItem.create({
       data: {
         product: {
           connect: { id: product.id }
@@ -26,7 +27,7 @@ export class OrderItemsRepo {
   }
 
   async findOrderItem(orderId: string, productId: string) {
-    return await this.prismaService.orderItem.findFirst({
+    return  this.prismaService.orderItem.findFirst({
       where: {
         orderId,
         productId
@@ -40,7 +41,7 @@ export class OrderItemsRepo {
         id: orderItem.productId
       }
     })
-    return await this.prismaService.orderItem.update({
+    return  this.prismaService.orderItem.update({
       where: {
         id: orderItem.id
       },
