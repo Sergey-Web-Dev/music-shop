@@ -1,10 +1,10 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {Injectable, UnauthorizedException} from '@nestjs/common';
 import * as argon2 from 'argon2';
 import { UsersRepo } from 'domain/repos/users.repo';
-import { SignUpForm } from './domain/sign-up.form';
-import { SignInForm } from './domain/sign-in.form';
+import { SignUpBodyDto } from './dtos/sign-up.dto';
+import { SignInBodyDto } from './dtos/sign-in.dto';
 import { SecurityService } from 'libs/security/security.service';
-import { JwtPayload, UserFromToken } from 'libs/security/types/jwt.types';
+import { JwtPayload } from 'libs/security/types/jwt.types';
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
@@ -15,32 +15,32 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async signIn(signInForm: SignInForm) {
+  public async signIn(signInForm: SignInBodyDto) {
     const { email, password } = signInForm;
     const user = await this.usersRepo.getUserByEmail(email);
     if (!user) {
-      throw new HttpException('There is no such user', HttpStatus.BAD_REQUEST);
+      throw new UnauthorizedException('User does not exist')
     }
     const passwordMatch = await argon2.verify(user.hashedPassword, password);
     if (!passwordMatch) {
-      throw new HttpException('Wrong password', HttpStatus.BAD_REQUEST);
+      throw new UnauthorizedException('Wrong password');
     }
-    const payload: JwtPayload = { sub: user.id, email: user.email };
+    const payload: JwtPayload = { id: user.id, email: user.email };
     return this.assignTokens(payload);
   }
 
-  async signUp(signUpForm: SignUpForm) {
+  async signUp(signUpForm: SignUpBodyDto) {
     const { email, password, confirmPassword } = signUpForm;
-    const entity = await this.usersRepo.getUserByEmail(email);
-    if (entity) {
-      throw new HttpException('User with this email already exists', HttpStatus.BAD_REQUEST);
+    const user = await this.usersRepo.getUserByEmail(email);
+    if (user) {
+      throw new UnauthorizedException('User with this email already exists');
     }
     if (password !== confirmPassword) {
-      throw new HttpException('Passwords do not match', HttpStatus.BAD_REQUEST);
+      throw new UnauthorizedException('Passwords do not match');
     }
     const hashedPassword = await argon2.hash(password);
     const createdUser = await this.usersRepo.createUser(email, hashedPassword);
-    const payload = { sub: createdUser.id, email: createdUser.email };
+    const payload = { id: createdUser.id, email: createdUser.email };
     return this.assignTokens(payload);
   }
 
@@ -54,19 +54,22 @@ export class AuthService {
 
   async refresh(bearer: string) {
     const refresh_token = bearer.replace('Bearer ', '');
-    const userFromToken: UserFromToken = await this.jwtService.verifyAsync(refresh_token, {
-        secret: process.env.JWT_SECRET,
-    });
+    const user = await this.usersRepo.findByRefreshToken(refresh_token);
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
     const payload: JwtPayload = {
-      sub: userFromToken.sub,
-      email: userFromToken.email,
+      id: user.id,
+      email: user.email,
     };
     return await this.assignTokens(payload);
   }
 
   async assignTokens(payload: JwtPayload) {
     const tokens = await this.securityService.generateTokens(payload);
-    await this.usersRepo.setRefreshToken(payload.sub, tokens.refresh_token);
+    await this.usersRepo.setRefreshToken(payload.id, tokens.refresh_token);
     return tokens;
   }
 }

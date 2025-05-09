@@ -1,10 +1,10 @@
 export type JwtPayload = {
-  sub: string;
+  id: string;
   email: string;
 }
 
 export type UserFromToken = {
-  sub: string;
+  id: string;
   email: string;
   iat: string;
   exp: string;

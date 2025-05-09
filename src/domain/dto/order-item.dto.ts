@@ -15,7 +15,7 @@ export class OrderItemDto extends UUIDDto {
     const it = new OrderItemDto();
     it.id = entity.id;
     it.quantity = entity.quantity;
-    it.bundlePrice = entity.bundlePrice;
+    it.bundlePrice = entity.price;
     it.available = entity.available;
     it.productId = entity.productId;
     it.orderId = entity.orderId;

@@ -61,7 +61,7 @@ export class OrdersRepo {
   async updatedOrderTotal(orderId: string) {
     const aggregation = await this.prismaService.orderItem.aggregate({
       _sum: {
-        bundlePrice: true,
+        price: true,
       },
       where: {
         orderId,
@@ -72,7 +72,7 @@ export class OrdersRepo {
         id: orderId,
       },
       data: {
-        total: aggregation._sum.bundlePrice,
+        total: aggregation._sum.price,
       },
       include: {
         orderItems: true,

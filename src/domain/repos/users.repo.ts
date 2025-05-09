@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { UserFromToken } from "libs/security/types/jwt.types";
 import {DbService} from '../../db/db.service';
+import {GetUserListRequestDto} from '../../user/dtos/user-list.request.dto';
 
 @Injectable()
 export class UsersRepo {
@@ -27,11 +28,34 @@ export class UsersRepo {
     return  this.prismaService.user.findUnique({
       where: {
         id
-      },
-      include: {
-        orders: true
       }
     })
+  }
+
+  async updateUserByEmailOrId( data: any, email?: string, id?: string) {
+    return  this.prismaService.user.update({
+      where: {
+        ...(id ? { id } : { email })
+      },
+      data
+    })
+  }
+
+  async getAllUsers(queryOptions?: GetUserListRequestDto) {
+    if(!queryOptions){
+      return  this.prismaService.user.findMany({})
+    }
+    const { page, id, direction } = queryOptions;
+    return  this.prismaService.user.findMany({
+      where: {
+        id: id,
+      },
+      orderBy: {
+        id: direction === 'ASC' ? 'asc' : 'desc',
+      },
+      take: 10,
+      skip: (page - 1) * 10,
+    });
   }
 
   async setRefreshToken(id: string, refreshToken: string) {
@@ -45,10 +69,16 @@ export class UsersRepo {
     })
   }
 
+  async findByRefreshToken(refreshToken: string) {
+    return this.prismaService.user.findFirst({
+      where: {  refreshToken: refreshToken }
+    });
+  }
+
   async signOutUser(user: UserFromToken) {
     return  this.prismaService.user.update({
       where: {
-        id: user.sub
+        id: user.id
       },
       data: {
         refreshToken: null

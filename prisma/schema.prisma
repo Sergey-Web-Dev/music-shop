@@ -26,12 +26,13 @@ model User {
 
   email          String @unique
   hashedPassword String
-  salt           String
 
   firstName String?
   lastName  String?
+  image     String?
 
-  role UserRole @default(CUSTOMER)
+  role         UserRole @default(CUSTOMER)
+  refreshToken String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -48,7 +49,7 @@ model Product {
   price             Float
   quantityAvailable Int
   description       String?
-  categoryId        String
+  categoryId        String  @db.Uuid
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -62,7 +63,7 @@ model Product {
 model Category {
   id       String  @id @default(uuid()) @db.Uuid
   name     String
-  parentId String?
+  parentId String? @db.Uuid
 
   products      Product[]
   subcategories Subcategory[]
@@ -73,7 +74,7 @@ model Category {
 model Subcategory {
   id               String           @id @default(uuid()) @db.Uuid
   name             String
-  categoryId       String
+  categoryId       String           @db.Uuid
   category         Category         @relation(fields: [categoryId], references: [id])
   subsubcategories Subsubcategory[]
 
@@ -86,7 +87,7 @@ model Subcategory {
 model Subsubcategory {
   id            String      @id @default(uuid()) @db.Uuid
   name          String
-  subcategoryId String
+  subcategoryId String      @db.Uuid
   subcategory   Subcategory @relation(fields: [subcategoryId], references: [id])
 
   createdAt DateTime @default(now())
@@ -97,23 +98,24 @@ model Subsubcategory {
 
 model Order {
   id     String   @id @default(uuid()) @db.Uuid
-  userId String   @default(uuid()) @db.Uuid
+  userId String   @db.Uuid
   total  Float?
   status Statuses @default(InCart)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user       User        @relation(fields: [userId], references: [id])
-  orderItems OrderItem[]
+  user         User           @relation(fields: [userId], references: [id])
+  orderItems   OrderItem[]
+  OrderHistory OrderHistory[]
 
   @@map("orders")
 }
 
 model OrderItem {
   id        String @id @default(uuid()) @db.Uuid
-  productId String
-  orderId   String
+  productId String @db.Uuid
+  orderId   String @db.Uuid
 
   quantity  Int
   price     Float
@@ -123,4 +125,24 @@ model OrderItem {
   order   Order?  @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@map("order_items")
+}
+
+model ShopSetting {
+  id          String  @id @default(uuid()) @db.Uuid
+  name        String
+  value       String
+  description String?
+
+  @@map("shop_settings")
+}
+
+model OrderHistory {
+  id        String   @id @default(uuid()) @db.Uuid
+  orderId   String   @db.Uuid
+  status    Statuses
+  changedAt DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  @@map("order_history")
 }

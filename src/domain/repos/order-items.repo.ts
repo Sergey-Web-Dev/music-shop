@@ -14,14 +14,14 @@ export class OrderItemsRepo {
         id: orderItem.productId
       }
     })
-    const bundlePrice = product.price*orderItem.quantity;
+    const price = product.price*orderItem.quantity;
     return this.prismaService.orderItem.create({
       data: {
         product: {
           connect: { id: product.id }
         },
         quantity: Number(orderItem.quantity),
-        bundlePrice
+        price
       }
     })
   }
@@ -47,7 +47,7 @@ export class OrderItemsRepo {
       },
       data: {
         quantity: Number(newItem.quantity),
-        bundlePrice: product.price*Number(newItem.quantity)
+        price: product.price*Number(newItem.quantity)
       }
     })
   }
