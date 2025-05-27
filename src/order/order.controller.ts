@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Headers, HttpException, HttpStatus, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, HttpStatus, Post, UseGuards } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CurrentUser } from 'libs/decorators/current-user.decorator';
 import { OrderItem, User } from '@prisma/client';
@@ -9,20 +9,25 @@ import { OrderDto } from 'domain/dto/order.dto';
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
+  // @Get('cart')
+  // @UseGuards(JwtGuard)
+  // async getCart(@CurrentUser('id') userId: string) {
+  //   const user = { id: userId };
+  //   return await this.orderService.getCart(user)
+  // }
+
   @Get('cart')
-  @UseGuards(JwtGuard)
-  async getCart(@CurrentUser('id') userId: string) {
-    const user = { id: userId };
-    return await this.orderService.getCart(user)
+  async getCart() {
+    return await this.orderService.getCart()
   }
 
-  @Post('add-to-order')
-  @UseGuards(JwtGuard)
-  async addToOrder(@CurrentUser('id') userId: string, @Body() orderItem: Pick<OrderItem, 'productId' | 'quantity'>) {
-    const user = { id: userId };
-    const order = await this.orderService.addToOrder(user, orderItem);
-    return OrderDto.fromEntity(order);
-  }
+  // @Post('add-to-order')
+  // @UseGuards(JwtGuard)
+  // async addToOrder(@CurrentUser('id') userId: string, @Body() orderItem: Pick<OrderItem, 'productId' | 'quantity'>) {
+  //   const user = { id: userId };
+  //   const order = await this.orderService.addToOrder(user, orderItem);
+  //   return OrderDto.fromEntity(order);
+  // }
 
   @Post('remove-from-order')
   @UseGuards(JwtGuard)
@@ -49,11 +54,11 @@ export class OrderController {
     return OrderDto.fromEntities(history);
   }
 
-  @Post('submit')
-  @UseGuards(JwtGuard)
-  async submitOrder(@CurrentUser('id') userId: string) {
-    const user = { id: userId };
-    const order = await this.orderService.submitOrder(user);
-    return OrderDto.fromEntity(order)
-  }
+  // @Post('submit')
+  // @UseGuards(JwtGuard)
+  // async submitOrder(@CurrentUser('id') userId: string) {
+  //   const user = { id: userId };
+  //   const order = await this.orderService.submitOrder(user);
+  //   return OrderDto.fromEntity(order)
+  // }
 }

@@ -45,16 +45,25 @@ model User {
 model Product {
   id                String  @id @default(uuid()) @db.Uuid
   name              String
+  description       String?
+  article           String?
   image             String
   price             Float
+  discount          Float
   quantityAvailable Int
-  description       String?
-  categoryId        String  @db.Uuid
+  categoryId        String? @db.Uuid
+
+  isChecked    Boolean
+  isBestseller Boolean
+
+  bonuses      Float
+  rating       Float?
+  reviewAmount Int?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  category   Category    @relation(fields: [categoryId], references: [id])
+  category   Category?   @relation(fields: [categoryId], references: [id])
   orderItems OrderItem[]
 
   @@map("products")
@@ -98,14 +107,14 @@ model Subsubcategory {
 
 model Order {
   id     String   @id @default(uuid()) @db.Uuid
-  userId String   @db.Uuid
+  userId String?  @db.Uuid
   total  Float?
   status Statuses @default(InCart)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user         User           @relation(fields: [userId], references: [id])
+  user         User?          @relation(fields: [userId], references: [id])
   orderItems   OrderItem[]
   OrderHistory OrderHistory[]
 
@@ -118,8 +127,8 @@ model OrderItem {
   orderId   String @db.Uuid
 
   quantity  Int
-  price     Float
-  available Int?
+  price     Float // remove
+  available Int? // remove
 
   product Product @relation(fields: [productId], references: [id])
   order   Order?  @relation(fields: [orderId], references: [id], onDelete: Cascade)

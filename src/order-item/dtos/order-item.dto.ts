@@ -2,12 +2,6 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class orderItemBodyDto {
   @ApiProperty({
-    type: String,
-    required: true,
-  })
-  id: string;
-
-  @ApiProperty({
     type: Number,
     required: true,
   })
@@ -23,24 +17,18 @@ export class orderItemBodyDto {
     type: String,
     required: true,
   })
-  productName: string;
+  productId: string;
 
   @ApiProperty({
     type: String,
     required: true,
   })
-  productDescription: string;
+  orderId: string;
 
   @ApiProperty({
     type: Number,
     required: true,
   })
-  discount: number;
-
-  @ApiProperty({
-    type: Number,
-    required: true,
-  })
-  tax: number;
+  available: number;
 
 }

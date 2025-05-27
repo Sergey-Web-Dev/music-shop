@@ -1,13 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { ProductsRepo } from 'domain/repos/products.repo';
-import { QueryType } from './types/product.types';
 
 @Injectable()
 export class ProductService {
   constructor(private productsRepo: ProductsRepo) {}
 
-  async getProducts(query: QueryType) {
-    return await this.productsRepo.getProducts(query);
+  async getProducts() {
+    return this.productsRepo.getAllProducts();
   }
 
   async getProductById(id: string) {

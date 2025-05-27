@@ -12,33 +12,38 @@ export class OrderService {
     private productsRepo: ProductsRepo,
   ) {}
 
-  async getCart(user: Pick<User, 'id'>) {
-    return this.ordersRepo.findCart(user);
+  // async getCart(user: Pick<User, 'id'>) {
+  //   return this.ordersRepo.findCart(user);
+  // }
+
+  async getCart() {
+    return this.ordersRepo.findCart();
   }
 
-  async addToOrder(
-    user: Pick<User, 'id'>,
-    orderItem: Pick<OrderItem, 'productId' | 'quantity'>,
-  ) {
-    let cart = await this.ordersRepo.findCart(user);
-    if (!cart) {
-      cart = await this.ordersRepo.createCart(user);
-    }
-    let newOrderItem = await this.orderItemsRepo.findOrderItem(
-      cart.id,
-      orderItem.productId,
-    );
-    if (!newOrderItem) {
-      newOrderItem = await this.orderItemsRepo.createOrderItem(orderItem);
-    } else {
-      newOrderItem = await this.orderItemsRepo.updateOrderItemQuantity(
-        newOrderItem,
-        orderItem,
-      );
-    }
-    const order = await this.ordersRepo.addToOrder(cart, newOrderItem);
-    return await this.ordersRepo.updatedOrderTotal(order.id);
-  }
+
+  // async addToOrder(
+  //   user: Pick<User, 'id'>,
+  //   orderItem: Pick<OrderItem, 'productId' | 'quantity'>,
+  // ) {
+  //   let cart = await this.ordersRepo.findCart(user);
+  //   if (!cart) {
+  //     cart = await this.ordersRepo.createCart(user);
+  //   }
+  //   let newOrderItem = await this.orderItemsRepo.findOrderItem(
+  //     cart.id,
+  //     orderItem.productId,
+  //   );
+  //   if (!newOrderItem) {
+  //     newOrderItem = await this.orderItemsRepo.createOrderItem(orderItem);
+  //   } else {
+  //     newOrderItem = await this.orderItemsRepo.updateOrderItemQuantity(
+  //       newOrderItem,
+  //       orderItem,
+  //     );
+  //   }
+  //   const order = await this.ordersRepo.addToOrder(cart, newOrderItem);
+  //   return await this.ordersRepo.updatedOrderTotal(order.id);
+  // }
 
   async removeFromOrder(
     user: Pick<User, 'id'>,
@@ -64,33 +69,33 @@ export class OrderService {
     return await this.ordersRepo.getHistory(user);
   }
 
-  async submitOrder(user: Pick<User, 'id'>) {
-    const cart = await this.ordersRepo.findCart(user);
-    if (!cart) {
-      return;
-    }
-    const orderItems: OrderItem[] = cart['orderItems'];
-    await Promise.all(
-      orderItems.map(async (item) => {
-        let availableQuantity = await this.productsRepo.getProductQuantity(
-          item.productId,
-        );
-        if (item.quantity > availableQuantity) {
-          item.available = availableQuantity;
-        }
-        return item;
-      }),
-    );
-    if (
-      orderItems.every((item) => item.available === null && item.quantity > 0)
-    ) {
-      orderItems.forEach((item) => [
-        this.productsRepo.updateProductAmount(item.productId, item.quantity),
-      ]);
-      return await this.ordersRepo.submitOrder(cart);
-    }
-    cart['orderItems'] = orderItems;
-    await this.clearOrder(user);
-    return cart;
-  }
+  // async submitOrder(user: Pick<User, 'id'>) {
+  //   const cart = await this.ordersRepo.findCart(user);
+  //   if (!cart) {
+  //     return;
+  //   }
+  //   const orderItems: OrderItem[] = cart['orderItems'];
+  //   await Promise.all(
+  //     orderItems.map(async (item) => {
+  //       let availableQuantity = await this.productsRepo.getProductQuantity(
+  //         item.productId,
+  //       );
+  //       if (item.quantity > availableQuantity) {
+  //         item.available = availableQuantity;
+  //       }
+  //       return item;
+  //     }),
+  //   );
+  //   if (
+  //     orderItems.every((item) => item.available === null && item.quantity > 0)
+  //   ) {
+  //     orderItems.forEach((item) => [
+  //       this.productsRepo.updateProductAmount(item.productId, item.quantity),
+  //     ]);
+  //     return await this.ordersRepo.submitOrder(cart);
+  //   }
+  //   cart['orderItems'] = orderItems;
+  //   await this.clearOrder(user);
+  //   return cart;
+  // }
 }

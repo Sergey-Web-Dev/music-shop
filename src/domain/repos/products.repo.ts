@@ -10,7 +10,7 @@ export class ProductsRepo {
     const { page, perPage } = query;
     const skip = page ? (page-1) * perPage : 0;
     const take = +perPage;
-    return await this.prismaService.product.findMany({
+    return  this.prismaService.product.findMany({
       where: {
         quantityAvailable: { gt: 0 },
       },
@@ -20,11 +20,11 @@ export class ProductsRepo {
   }
 
   async getAllProducts() {
-    return await this.prismaService.product.findMany();
+    return  this.prismaService.product.findMany();
   }
 
   async getProductById(id: string) {
-    return await this.prismaService.product.findUnique({
+    return  this.prismaService.product.findUnique({
       where: {
         id,
       },
@@ -53,7 +53,7 @@ export class ProductsRepo {
   }
 
   async updateProductAmount(id: string, quantity: number) {
-    return await this.prismaService.product.update({
+    return  this.prismaService.product.update({
       where: {
         id,
       },

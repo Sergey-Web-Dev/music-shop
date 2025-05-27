@@ -1,16 +1,14 @@
-import { Controller, Get, HttpException, HttpStatus, Param, Query } from '@nestjs/common';
+import { Controller, Get, HttpException, HttpStatus, Param } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { ProductDto } from 'domain/dto/product.dto';
-import { QueryType } from './types/product.types';
 
 @Controller('products')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
   @Get()
-  async getProducts(@Query() query: QueryType) {
-    const products = await this.productService.getProducts(query);
-    return ProductDto.fromEntities(products);
+  async getProducts() {
+    return  this.productService.getProducts();
   }
 
   @Get(':id')

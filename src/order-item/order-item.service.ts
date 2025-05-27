@@ -1,12 +1,24 @@
 import { Injectable } from '@nestjs/common';
-import { OrderItem } from '@prisma/client';
 import { OrderItemsRepo } from 'domain/repos/order-items.repo';
+import {orderItemBodyDto} from './dtos/order-item.dto';
 
 @Injectable()
 export class OrderItemService {
   constructor(private orderItemsRepo: OrderItemsRepo) {}
 
-  async updateOrderItemQuantity(orderItem: Pick<OrderItem, 'id' | 'productId'>, newOrderItem: Pick<OrderItem, 'quantity'>) {
-    return this.orderItemsRepo.updateOrderItemQuantity(orderItem, newOrderItem)
+  async addToCart(orderItem: orderItemBodyDto) {
+    return this.orderItemsRepo.addToCart(orderItem)
+  }
+
+  async addOrderItemProduct(orderItemId: string) {
+    return this.orderItemsRepo.addOrderItemProduct(orderItemId)
+  }
+
+  async removeOrderItemProduct(orderItemId: string) {
+    return this.orderItemsRepo.removeOrderItemProduct(orderItemId)
+  }
+
+  async removeFromCart(orderItemId: string) {
+    return this.orderItemsRepo.removeFromCart(orderItemId)
   }
 }
